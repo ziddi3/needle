@@ -215,9 +215,12 @@ function loop(){
   smoothedCents+=(currentCents-smoothedCents)*0.22;updateUI();requestAnimationFrame(loop);
 }
 btnListen.addEventListener('click',function(){listening?stopListen():startListen()});
-function toggleManual(e){if(e)e.preventDefault();var on=manualPanel.classList.toggle('show');btnManual.classList.toggle('active',on);if(on&&listening)stopListen();}
-btnManual.addEventListener('click',toggleManual);
-btnManual.addEventListener('touchend',toggleManual,{passive:false});
+btnManual.addEventListener('click',function(e){
+  e.preventDefault();
+  var on=manualPanel.classList.toggle('show');
+  btnManual.classList.toggle('active',on);
+  if(on&&listening)stopListen();
+});
 centsSlider.oninput=function(){
   currentCents=Number(centsSlider.value);smoothedCents=currentCents;
   manualVal.textContent=(currentCents>0?'+':'')+currentCents+' ¢';updateUI();
