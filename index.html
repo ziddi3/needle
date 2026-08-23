@@ -25,8 +25,10 @@
     .left .peg .label { left:auto; right:-.15rem; transform:none; }
     .right .peg .label { left:-.15rem; right:auto; transform:none; }
     .emblem-wrap { position:relative; width:100%; aspect-ratio:1; max-width:260px; margin:0 auto; filter:drop-shadow(0 12px 32px rgba(0,40,120,.45)); }
-    .emblem-wrap img { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .28s ease; pointer-events:none; }
-    .emblem-wrap img.show { opacity:1; }
+    .emblem-wrap img, .emblem-wrap video { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .28s ease; pointer-events:none; }
+    .emblem-wrap img.show, .emblem-wrap video.show { opacity:1; }
+    .emblem-wrap .brand-mark { opacity:.35; z-index:0; }
+    .emblem-wrap .brand-mark.show { opacity:.35; }
     .readout { width:min(100%,420px); text-align:center; }
     .note { font-size:clamp(2.2rem,9vw,3rem); font-weight:300; letter-spacing:.04em; line-height:1; }
     .note.in-tune { color:var(--ok); text-shadow:0 0 28px rgba(255,106,43,.45); }
@@ -52,104 +54,183 @@
     <div class="brand"><strong>Needle</strong> · Methodz</div>
     <div class="status-pill" id="statusPill">Ready</div>
   </header>
+
   <div class="stage">
     <div class="pegs left" id="pegsLeft"></div>
     <div class="emblem-wrap" id="emblem">
-      <img src="assets/state_flat_sparks.jpg" data-state="flat" alt="" />
-      <img src="assets/state_rising.jpg" data-state="rising" alt="" />
-      <img src="assets/state_in_tune.jpg" data-state="tune" alt="" />
-      <img src="assets/state_in_tune.jpg" data-state="tune-loop" alt="" />
-      <img src="assets/state_sharp_rage.jpg" data-state="sharp" alt="" />
+      <img id="brandMark" class="brand-mark" alt="Methodz" />
+      <img data-state="flat" alt="" />
+      <img data-state="rising" alt="" />
+      <img data-state="tune" alt="" />
+      <img data-state="tune-loop" alt="" />
+      <img data-state="sharp" alt="" />
     </div>
     <div class="pegs right" id="pegsRight"></div>
   </div>
+
   <div class="readout">
     <div class="note" id="note">—</div>
     <div class="cents" id="cents">— ¢</div>
     <div class="hint" id="hint">Tap Listen, then pluck a string</div>
   </div>
+
   <div class="string-row" id="stringRow"></div>
+
   <div class="controls">
     <button class="primary" id="btnListen">Listen</button>
     <button id="btnManual">Manual</button>
   </div>
+
   <div class="manual" id="manualPanel">
     <label><span>Cents offset</span><span id="manualVal">0 ¢</span></label>
     <input type="range" id="centsSlider" min="-60" max="60" value="0" step="1" />
   </div>
+
   <div class="footer">tuning.methodz.ca</div>
+
   <script>
+    const METHODZ_API = {
+      manifest: 'https://raw.githubusercontent.com/ziddi3/methodz-brand-assets/main/api/v1/manifest.json',
+      rawBase:  'https://raw.githubusercontent.com/ziddi3/methodz-brand-assets/main/',
+    };
+
+    async function getBrandAsset(company, assetKey) {
+      const res = await fetch(METHODZ_API.manifest);
+      if (!res.ok) throw new Error('Methodz manifest ' + res.status);
+      const manifest = await res.json();
+      const asset = manifest.assets?.[company]?.[assetKey];
+      if (!asset) throw new Error('Asset not found: ' + company + '.' + assetKey);
+      return {
+        ...asset,
+        raw_url: METHODZ_API.rawBase + asset.path,
+        endpoint_url: METHODZ_API.rawBase + asset.endpoint,
+      };
+    }
+
+    async function getNeedleFlames() {
+      try {
+        const res = await fetch(METHODZ_API.manifest);
+        const manifest = await res.json();
+        const needle = manifest.assets?.needle;
+        if (!needle) return null;
+        const map = {};
+        for (const [key, asset] of Object.entries(needle)) {
+          map[key] = METHODZ_API.rawBase + asset.path;
+        }
+        return map;
+      } catch (e) {
+        console.warn('Needle flames not in API yet', e);
+        return null;
+      }
+    }
+
+    (async function loadMethodzAssets() {
+      try {
+        const logo = await getBrandAsset('methodz', 'main_logo');
+        const brandMark = document.getElementById('brandMark');
+        brandMark.src = logo.raw_url;
+        brandMark.classList.add('show');
+        console.log('Methodz brand mark:', logo.raw_url);
+      } catch (e) {
+        console.warn('Brand mark load failed', e);
+      }
+
+      const flames = await getNeedleFlames();
+      if (flames) {
+        const map = {
+          flat: flames.flat || flames.state_flat_sparks,
+          rising: flames.rising || flames.state_rising,
+          tune: flames.tune || flames.state_in_tune,
+          'tune-loop': flames.tune_loop || flames.tune || flames.state_in_tune,
+          sharp: flames.sharp || flames.state_sharp_rage,
+        };
+        document.querySelectorAll('#emblem [data-state]').forEach((img) => {
+          const url = map[img.dataset.state];
+          if (url) img.src = url;
+        });
+        console.log('Needle flames from Methodz API', map);
+      } else {
+        console.info('Register needle flames in methodz-brand-assets under assets.needle');
+      }
+    })();
+
     const STRINGS = [
-      { name: "Low E", note: "E2", freq: 82.41, side: "left" },
-      { name: "A", note: "A2", freq: 110.00, side: "left" },
-      { name: "D", note: "D3", freq: 146.83, side: "left" },
-      { name: "G", note: "G3", freq: 196.00, side: "right" },
-      { name: "B", note: "B3", freq: 246.94, side: "right" },
-      { name: "High E", note: "E4", freq: 329.63, side: "right" },
+      { name: 'Low E', note: 'E2', freq: 82.41, side: 'left' },
+      { name: 'A', note: 'A2', freq: 110.00, side: 'left' },
+      { name: 'D', note: 'D3', freq: 146.83, side: 'left' },
+      { name: 'G', note: 'G3', freq: 196.00, side: 'right' },
+      { name: 'B', note: 'B3', freq: 246.94, side: 'right' },
+      { name: 'High E', note: 'E4', freq: 329.63, side: 'right' },
     ];
+
     let activeString = 0, listening = false, currentCents = 0, smoothedCents = 0;
-    const pegsLeft = document.getElementById("pegsLeft");
-    const pegsRight = document.getElementById("pegsRight");
-    const stringRow = document.getElementById("stringRow");
-    const layers = [...document.querySelectorAll("#emblem [data-state]")];
+    const pegsLeft = document.getElementById('pegsLeft');
+    const pegsRight = document.getElementById('pegsRight');
+    const stringRow = document.getElementById('stringRow');
+    const layers = [...document.querySelectorAll('#emblem [data-state]')];
     const pegEls = [];
+
     STRINGS.forEach((s, i) => {
-      const peg = document.createElement("div");
-      peg.className = "peg";
-      peg.innerHTML = `<div class="wing"></div><div class="label">${s.note.replace(/\d/, "")}</div>`;
+      const peg = document.createElement('div');
+      peg.className = 'peg';
+      peg.innerHTML = '<div class="wing"></div><div class="label">' + s.note.replace(/\d/, '') + '</div>';
       peg.onclick = () => selectString(i);
-      (s.side === "left" ? pegsLeft : pegsRight).appendChild(peg);
+      (s.side === 'left' ? pegsLeft : pegsRight).appendChild(peg);
       pegEls.push({ el: peg, stringIndex: i });
-      const chip = document.createElement("div");
-      chip.className = "string-chip";
-      chip.innerHTML = `<span class="n">${s.note.replace(/\d/, "")}</span>${s.name}`;
+      const chip = document.createElement('div');
+      chip.className = 'string-chip';
+      chip.innerHTML = '<span class="n">' + s.note.replace(/\d/, '') + '</span>' + s.name;
       chip.onclick = () => selectString(i);
       stringRow.appendChild(chip);
     });
+
     function selectString(i) {
       activeString = i;
-      document.querySelectorAll(".string-chip").forEach((c, idx) => c.classList.toggle("active", idx === i));
-      pegEls.forEach(({ el, stringIndex }) => el.classList.toggle("active", stringIndex === i));
+      document.querySelectorAll('.string-chip').forEach((c, idx) => c.classList.toggle('active', idx === i));
+      pegEls.forEach(({ el, stringIndex }) => el.classList.toggle('active', stringIndex === i));
       updateUI();
     }
     selectString(0);
-    const noteEl = document.getElementById("note");
-    const centsEl = document.getElementById("cents");
-    const hintEl = document.getElementById("hint");
-    const statusPill = document.getElementById("statusPill");
-    const btnListen = document.getElementById("btnListen");
-    const btnManual = document.getElementById("btnManual");
-    const manualPanel = document.getElementById("manualPanel");
-    const centsSlider = document.getElementById("centsSlider");
-    const manualVal = document.getElementById("manualVal");
+
+    const noteEl = document.getElementById('note');
+    const centsEl = document.getElementById('cents');
+    const hintEl = document.getElementById('hint');
+    const statusPill = document.getElementById('statusPill');
+    const btnListen = document.getElementById('btnListen');
+    const btnManual = document.getElementById('btnManual');
+    const manualPanel = document.getElementById('manualPanel');
+    const centsSlider = document.getElementById('centsSlider');
+    const manualVal = document.getElementById('manualVal');
+
     function flameState(c) {
-      if (c <= -40) return "flat";
-      if (c < -5) return "rising";
-      if (Math.abs(c) <= 5) return "tune-loop";
-      return "sharp";
+      if (c <= -40) return 'flat';
+      if (c < -5) return 'rising';
+      if (Math.abs(c) <= 5) return 'tune-loop';
+      return 'sharp';
     }
     function statusText(c) {
-      if (Math.abs(c) <= 5) return "In tune · hold";
-      if (c < 0) return "Too low · tighten";
-      return "Too high · loosen";
+      if (Math.abs(c) <= 5) return 'In tune · hold';
+      if (c < 0) return 'Too low · tighten';
+      return 'Too high · loosen';
     }
     function updateUI() {
       const s = STRINGS[activeString];
       const c = smoothedCents;
-      noteEl.textContent = s.note.replace(/\d/, "");
-      noteEl.classList.toggle("in-tune", Math.abs(c) <= 5);
-      centsEl.textContent = `${c > 0 ? "+" : ""}${c.toFixed(0)} ¢`;
+      noteEl.textContent = s.note.replace(/\d/, '');
+      noteEl.classList.toggle('in-tune', Math.abs(c) <= 5);
+      centsEl.textContent = (c > 0 ? '+' : '') + c.toFixed(0) + ' ¢';
       hintEl.textContent = statusText(c);
-      statusPill.textContent = Math.abs(c) <= 5 ? "Locked" : (listening ? "Listening" : "Ready");
-      statusPill.classList.toggle("ok", Math.abs(c) <= 5);
+      statusPill.textContent = Math.abs(c) <= 5 ? 'Locked' : (listening ? 'Listening' : 'Ready');
+      statusPill.classList.toggle('ok', Math.abs(c) <= 5);
       const state = flameState(c);
-      layers.forEach((layer) => layer.classList.toggle("show", layer.dataset.state === state));
+      layers.forEach((layer) => layer.classList.toggle('show', layer.dataset.state === state));
       pegEls.forEach(({ el, stringIndex }) => {
         const active = stringIndex === activeString;
-        el.classList.toggle("active", active);
-        el.querySelector(".wing").style.transform = `rotate(${active ? Math.max(-50, Math.min(50, c)) * 2.4 : 0}deg)`;
+        el.classList.toggle('active', active);
+        el.querySelector('.wing').style.transform = 'rotate(' + (active ? Math.max(-50, Math.min(50, c)) * 2.4 : 0) + 'deg)';
       });
     }
+
     let audioCtx, analyser, mediaStream, buf;
     function freqToCents(freq, target) { return 1200 * Math.log2(freq / target); }
     function detectPitch(buffer, sampleRate) {
@@ -159,8 +240,8 @@
       rms = Math.sqrt(rms / SIZE);
       if (rms < 0.01) return -1;
       let r1 = 0, r2 = SIZE - 1, thres = 0.2;
-      for (let i = 0; i < SIZE / 2; i++) { if (Math.abs(buffer[i]) < thres) { r1 = i; break; } }
-      for (let i = 1; i < SIZE / 2; i++) { if (Math.abs(buffer[SIZE - i]) < thres) { r2 = SIZE - i; break; } }
+      for (let i = 0; i < SIZE / 2; i++) if (Math.abs(buffer[i]) < thres) { r1 = i; break; }
+      for (let i = 1; i < SIZE / 2; i++) if (Math.abs(buffer[SIZE - i]) < thres) { r2 = SIZE - i; break; }
       const buf2 = buffer.slice(r1, r2);
       const n = buf2.length;
       const c = new Array(n).fill(0);
@@ -184,19 +265,19 @@
         src.connect(analyser);
         buf = new Float32Array(analyser.fftSize);
         listening = true;
-        btnListen.classList.add("active");
-        btnListen.textContent = "Stop";
-        statusPill.textContent = "Listening";
+        btnListen.classList.add('active');
+        btnListen.textContent = 'Stop';
+        statusPill.textContent = 'Listening';
         loop();
-      } catch (e) { hintEl.textContent = "Mic permission needed — or use Manual"; console.warn(e); }
+      } catch (e) { hintEl.textContent = 'Mic permission needed — or use Manual'; console.warn(e); }
     }
     function stopListen() {
       listening = false;
-      btnListen.classList.remove("active");
-      btnListen.textContent = "Listen";
+      btnListen.classList.remove('active');
+      btnListen.textContent = 'Listen';
       if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
       if (audioCtx) audioCtx.close().catch(() => {});
-      statusPill.textContent = "Ready";
+      statusPill.textContent = 'Ready';
     }
     function loop() {
       if (!listening) return;
@@ -214,14 +295,14 @@
     }
     btnListen.onclick = () => listening ? stopListen() : startListen();
     btnManual.onclick = () => {
-      const on = manualPanel.classList.toggle("show");
-      btnManual.classList.toggle("active", on);
+      const on = manualPanel.classList.toggle('show');
+      btnManual.classList.toggle('active', on);
       if (on && listening) stopListen();
     };
     centsSlider.oninput = () => {
       currentCents = Number(centsSlider.value);
       smoothedCents = currentCents;
-      manualVal.textContent = `${currentCents > 0 ? "+" : ""}${currentCents} ¢`;
+      manualVal.textContent = (currentCents > 0 ? '+' : '') + currentCents + ' ¢';
       updateUI();
     };
     updateUI();
