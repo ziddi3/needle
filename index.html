@@ -39,10 +39,10 @@ header{width:min(100%,420px);display:flex;justify-content:space-between;align-it
 .string-chip.active{border-color:var(--blue);color:var(--blue);background:rgba(61,180,255,.08)}
 .string-chip .n{display:block;font-size:.9rem;font-weight:600}
 .controls{width:min(100%,420px);display:flex;gap:.6rem;margin-top:1.1rem;justify-content:center;flex-wrap:wrap}
-button{appearance:none;border:1px solid #243044;background:rgba(14,20,32,.85);color:var(--fg);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;padding:.7rem 1.15rem;border-radius:999px;cursor:pointer}
+button{appearance:none;border:1px solid #243044;background:rgba(14,20,32,.85);color:var(--fg);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;padding:.85rem 1.35rem;border-radius:999px;cursor:pointer;min-height:48px;position:relative;z-index:10;-webkit-user-select:none;user-select:none;touch-action:manipulation}
 button.primary{background:linear-gradient(180deg,#1a2a44,#0e1624);border-color:rgba(61,180,255,.45)}
 button.primary.active{border-color:var(--blue);box-shadow:0 0 20px rgba(61,180,255,.3);color:var(--blue)}
-.manual{width:min(100%,420px);margin-top:.9rem;padding:.75rem 1rem;border-radius:12px;border:1px solid #1a2434;background:rgba(8,12,20,.5);display:none}
+.manual{width:min(100%,420px);margin-top:.9rem;padding:.85rem 1rem;border-radius:12px;border:1px solid #243044;background:rgba(10,16,28,.95);display:none;position:relative;z-index:10}
 .manual.show{display:block}
 .manual label{display:flex;justify-content:space-between;font-size:.65rem;color:var(--muted);margin-bottom:.35rem}
 input[type=range]{width:100%;accent-color:var(--blue)}
@@ -143,12 +143,12 @@ function selectString(i){
   pegEls.forEach(function(p){p.el.classList.toggle('active',p.stringIndex===i)});
   updateUI();
 }
-selectString(0);
 var noteEl=document.getElementById('note'),centsEl=document.getElementById('cents');
 var hintEl=document.getElementById('hint'),statusPill=document.getElementById('statusPill');
 var btnListen=document.getElementById('btnListen'),btnManual=document.getElementById('btnManual');
 var manualPanel=document.getElementById('manualPanel'),centsSlider=document.getElementById('centsSlider');
 var manualVal=document.getElementById('manualVal');
+selectString(0);
 function flameState(c){if(c<=-40)return'flat';if(c<-5)return'rising';if(Math.abs(c)<=5)return'tune-loop';return'sharp'}
 function statusText(c){if(Math.abs(c)<=5)return'In tune · hold';if(c<0)return'Too low · tighten';return'Too high · loosen'}
 function updateUI(){
@@ -214,11 +214,10 @@ function loop(){
   }
   smoothedCents+=(currentCents-smoothedCents)*0.22;updateUI();requestAnimationFrame(loop);
 }
-btnListen.onclick=function(){listening?stopListen():startListen()};
-btnManual.onclick=function(){
-  var on=manualPanel.classList.toggle('show');btnManual.classList.toggle('active',on);
-  if(on&&listening)stopListen();
-};
+btnListen.addEventListener('click',function(){listening?stopListen():startListen()});
+function toggleManual(e){if(e)e.preventDefault();var on=manualPanel.classList.toggle('show');btnManual.classList.toggle('active',on);if(on&&listening)stopListen();}
+btnManual.addEventListener('click',toggleManual);
+btnManual.addEventListener('touchend',toggleManual,{passive:false});
 centsSlider.oninput=function(){
   currentCents=Number(centsSlider.value);smoothedCents=currentCents;
   manualVal.textContent=(currentCents>0?'+':'')+currentCents+' ¢';updateUI();
