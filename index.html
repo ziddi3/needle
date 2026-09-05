@@ -3,82 +3,127 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta name="theme-color" content="#050506"/>
+<meta name="theme-color" content="#0a0c10"/>
+<meta name="description" content="Needle — analog guitar tuner by Methodz. White-scale VU meter, color needle, Methodz flame when you lock in."/>
 <title>Needle · Methodz</title>
 <style>
-:root{--bg:#050506;--fg:#e8eef8;--muted:#6b7a90;--ok:#ff6a2b;--blue:#3db4ff}
+:root{
+  --bg:#0a0c10;
+  --fg:#e8e6df;
+  --muted:#7a828c;
+  --line:#1c222c;
+  --cream:#e8e6df;
+  --silver:#c5cdd6;
+  --green:#3dce7a;
+  --amber:#e8903a;
+  --blue:#4eb8ff;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman",serif;
+  --sans:"Segoe UI",system-ui,-apple-system,sans-serif;
+}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% 28%,#0c1528 0%,var(--bg) 65%);color:var(--fg);font-family:system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;padding:.75rem 1rem 1.5rem}
-header{width:min(100%,420px);display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem}
-.brand{font-size:.7rem;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
-.brand strong{color:var(--fg);font-weight:600;letter-spacing:.18em}
-.status-pill{font-size:.65rem;letter-spacing:.08em;padding:.28rem .7rem;border-radius:999px;border:1px solid #1e2a3d;color:var(--muted);background:rgba(10,16,28,.7)}
-.status-pill.ok{border-color:rgba(255,106,43,.55);color:var(--ok);box-shadow:0 0 18px rgba(255,106,43,.25)}
-.stage{display:grid;grid-template-columns:auto minmax(0,260px) auto;gap:.4rem .7rem;align-items:center;width:min(100%,480px);margin:.35rem 0 .75rem}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--fg)}
+body{
+  min-height:100dvh;
+  font-family:var(--sans);
+  display:flex;flex-direction:column;align-items:center;
+  padding:calc(.7rem + env(safe-area-inset-top)) 1rem calc(1.25rem + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(ellipse at 50% 18%,#161b24 0%,var(--bg) 58%);
+}
+header{width:min(100%,440px);display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.2rem}
+.brand{font-family:var(--serif);font-size:1.35rem;font-weight:600;letter-spacing:.02em}
+.brand span{font-family:var(--sans);font-size:.62rem;font-weight:500;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);margin-left:.55rem}
+.status-pill{
+  font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;
+  padding:.28rem .7rem;border-radius:999px;border:1px solid var(--line);
+  color:var(--muted);background:rgba(10,12,16,.7)
+}
+.status-pill.ok{border-color:rgba(61,206,122,.55);color:var(--green);box-shadow:0 0 16px rgba(61,206,122,.22)}
+.stage{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+  gap:.2rem .45rem;align-items:center;width:min(100%,480px);margin:.15rem 0 .2rem
+}
 .pegs{display:flex;flex-direction:column;gap:1.05rem}
-.peg{width:42px;height:42px;border-radius:50%;border:2px solid #243044;background:radial-gradient(circle at 32% 28%,#f4f7fc 0%,#9aa8bc 42%,#3d4658 100%);position:relative;opacity:.38;cursor:pointer;transition:.22s}
-.peg::after{content:"";position:absolute;inset:9px;border-radius:50%;background:linear-gradient(145deg,#2a3344,#0b1018)}
-.peg .wing{position:absolute;top:50%;left:50%;width:17px;height:5px;margin:-2.5px 0 0 -8.5px;background:linear-gradient(90deg,#e4ebf5,#5e6a7e);border-radius:2px;transform-origin:center;transition:transform .16s cubic-bezier(.22,1,.36,1);z-index:1}
-.peg.active{opacity:1;border-color:var(--blue);box-shadow:0 0 14px rgba(61,180,255,.4)}
-.peg .label{position:absolute;bottom:-1.1rem;left:50%;transform:translateX(-50%);font-size:.6rem;color:var(--muted)}
-.peg.active .label{color:var(--blue)}
-.left .peg .label{left:auto;right:-.15rem;transform:none}
-.right .peg .label{left:-.15rem;right:auto;transform:none}
-.emblem-wrap{position:relative;width:100%;aspect-ratio:1;max-width:260px;margin:0 auto;filter:drop-shadow(0 12px 32px rgba(0,40,120,.45))}
-.emblem-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .28s;pointer-events:none}
-.emblem-wrap img.show{opacity:1}
-.emblem-wrap .brand-mark{opacity:.35;z-index:0}
-.emblem-wrap .brand-mark.show{opacity:.35}
-.readout{width:min(100%,420px);text-align:center}
-.note{font-size:clamp(2.2rem,9vw,3rem);font-weight:300;letter-spacing:.04em;line-height:1}
-.note.in-tune{color:var(--ok);text-shadow:0 0 28px rgba(255,106,43,.45)}
-.cents{font-size:.95rem;color:var(--muted);margin-top:.2rem;font-variant-numeric:tabular-nums}
-.hint{font-size:.72rem;color:var(--muted);margin-top:.3rem;min-height:1.1em}
-.string-row{width:min(100%,420px);display:grid;grid-template-columns:repeat(6,1fr);gap:.4rem;margin-top:.9rem}
-.string-chip{text-align:center;padding:.55rem .15rem;border-radius:10px;border:1px solid #1e2a3d;background:rgba(10,16,28,.6);font-size:.65rem;color:var(--muted);cursor:pointer}
-.string-chip.active{border-color:var(--blue);color:var(--blue);background:rgba(61,180,255,.08)}
-.string-chip .n{display:block;font-size:.9rem;font-weight:600}
-.controls{width:min(100%,420px);display:flex;gap:.6rem;margin-top:1.1rem;justify-content:center;flex-wrap:wrap}
-button{appearance:none;border:1px solid #243044;background:rgba(14,20,32,.85);color:var(--fg);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;padding:.85rem 1.35rem;border-radius:999px;cursor:pointer;min-height:48px;position:relative;z-index:10;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-button.primary{background:linear-gradient(180deg,#1a2a44,#0e1624);border-color:rgba(61,180,255,.45)}
-button.primary.active{border-color:var(--blue);box-shadow:0 0 20px rgba(61,180,255,.3);color:var(--blue)}
-.manual{width:min(100%,420px);margin-top:.9rem;padding:.85rem 1rem;border-radius:12px;border:1px solid #243044;background:rgba(10,16,28,.95);display:none;position:relative;z-index:10}
+.peg{
+  width:40px;height:40px;border-radius:50%;border:2px solid #2a3342;
+  background:radial-gradient(circle at 32% 28%,#f4f1ea 0%,#9aa3b0 42%,#3d4658 100%);
+  position:relative;opacity:.38;cursor:pointer;transition:opacity .22s,border-color .22s,box-shadow .22s
+}
+.peg::after{content:"";position:absolute;inset:8px;border-radius:50%;background:linear-gradient(145deg,#2a3344,#0b1018)}
+.peg .wing{
+  position:absolute;top:50%;left:50%;width:16px;height:5px;margin:-2.5px 0 0 -8px;
+  background:linear-gradient(90deg,#e8e6df,#5e6a7e);border-radius:2px;
+  transform-origin:center;transition:transform .16s cubic-bezier(.22,1,.36,1);z-index:1
+}
+.peg.active{opacity:1;border-color:var(--silver);box-shadow:0 0 12px rgba(197,205,214,.28)}
+.peg .label{position:absolute;bottom:-1.05rem;left:50%;transform:translateX(-50%);font-size:.58rem;color:var(--muted);letter-spacing:.06em}
+.peg.active .label{color:var(--fg)}
+.meter-wrap{position:relative;width:100%;max-width:360px;margin:0 auto}
+.meter-svg{width:100%;height:auto;display:block;overflow:visible}
+.meter-svg .needle-glow{transition:opacity .2s}
+.readout{width:min(100%,440px);text-align:center;margin-top:-.35rem}
+.note{font-family:var(--serif);font-size:clamp(2.4rem,10vw,3.2rem);font-weight:600;letter-spacing:.04em;line-height:1;color:var(--cream)}
+.note.in-tune{color:var(--green);text-shadow:0 0 24px rgba(61,206,122,.4)}
+.cents{font-size:.92rem;color:var(--muted);margin-top:.15rem;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.hint{font-size:.72rem;color:var(--muted);margin-top:.28rem;min-height:1.15em}
+.string-row{width:min(100%,440px);display:grid;grid-template-columns:repeat(6,1fr);gap:.4rem;margin-top:.85rem}
+.string-chip{
+  text-align:center;padding:.55rem .1rem;border-radius:10px;border:1px solid var(--line);
+  background:rgba(12,16,22,.7);font-size:.6rem;color:var(--muted);cursor:pointer;min-height:48px
+}
+.string-chip.active{border-color:rgba(197,205,214,.45);color:var(--fg);background:rgba(197,205,214,.06)}
+.string-chip .n{display:block;font-size:.92rem;font-weight:600;font-family:var(--serif)}
+.controls{width:min(100%,440px);display:flex;gap:.6rem;margin-top:1.05rem;justify-content:center;flex-wrap:wrap}
+button{
+  appearance:none;border:1px solid #2a3342;background:rgba(14,18,24,.9);color:var(--fg);
+  font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;padding:.85rem 1.4rem;
+  border-radius:999px;cursor:pointer;min-height:48px;position:relative;z-index:10;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation
+}
+button.primary{background:linear-gradient(180deg,#1a222e,#10151c);border-color:rgba(197,205,214,.35)}
+button.primary.active{border-color:var(--blue);box-shadow:0 0 18px rgba(78,184,255,.28);color:var(--blue)}
+.manual{
+  width:min(100%,440px);margin-top:.85rem;padding:.85rem 1rem;border-radius:14px;
+  border:1px solid var(--line);background:rgba(10,14,20,.95);display:none;position:relative;z-index:10
+}
 .manual.show{display:block}
-.manual label{display:flex;justify-content:space-between;font-size:.65rem;color:var(--muted);margin-bottom:.35rem}
-input[type=range]{width:100%;accent-color:var(--blue)}
-.footer{margin-top:auto;padding-top:1.25rem;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:#3a4658}
+.manual label{display:flex;justify-content:space-between;font-size:.65rem;color:var(--muted);margin-bottom:.35rem;letter-spacing:.06em;text-transform:uppercase}
+input[type=range]{width:100%;accent-color:var(--green)}
+.legend{width:min(100%,440px);display:flex;justify-content:space-between;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:.15rem;padding:0 .4rem}
+.legend .g{color:var(--green)}
+.footer{margin-top:auto;padding-top:1.2rem;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:#3a4658}
+@media (max-width:380px){
+  .peg{width:34px;height:34px}
+  .peg::after{inset:7px}
+}
 </style>
 </head>
 <body>
 <header>
-<div class="brand"><strong>Needle</strong> · Methodz</div>
-<div class="status-pill" id="statusPill">Ready</div>
+  <div class="brand">Needle<span>Methodz</span></div>
+  <div class="status-pill" id="statusPill">Ready</div>
 </header>
 <div class="stage">
-<div class="pegs left" id="pegsLeft"></div>
-<div class="emblem-wrap" id="emblem">
-<img id="brandMark" class="brand-mark" alt="Methodz"/>
-<img data-state="flat" alt=""/>
-<img data-state="rising" alt=""/>
-<img data-state="tune" alt=""/>
-<img data-state="tune-loop" alt=""/>
-<img data-state="sharp" alt=""/>
+  <div class="pegs left" id="pegsLeft"></div>
+  <div class="meter-wrap">
+    <svg class="meter-svg" id="meter" viewBox="0 0 440 300" role="img" aria-label="Analog tuning meter"></svg>
+  </div>
+  <div class="pegs right" id="pegsRight"></div>
 </div>
-<div class="pegs right" id="pegsRight"></div>
-</div>
+<div class="legend"><span>Flat</span><span class="g">In tune</span><span>Sharp</span></div>
 <div class="readout">
-<div class="note" id="note">—</div>
-<div class="cents" id="cents">— ¢</div>
-<div class="hint" id="hint">Tap Listen, then pluck a string</div>
+  <div class="note" id="note">—</div>
+  <div class="cents" id="cents">— ¢</div>
+  <div class="hint" id="hint">Tap Listen, then pluck a string</div>
 </div>
 <div class="string-row" id="stringRow"></div>
 <div class="controls">
-<button class="primary" id="btnListen">Listen</button>
-<button id="btnManual">Manual</button>
+  <button class="primary" id="btnListen">Listen</button>
+  <button id="btnManual">Manual</button>
 </div>
 <div class="manual" id="manualPanel">
-<label><span>Cents offset</span><span id="manualVal">0 ¢</span></label>
-<input type="range" id="centsSlider" min="-60" max="60" value="0" step="1"/>
+  <label><span>Cents offset</span><span id="manualVal">0 ¢</span></label>
+  <input type="range" id="centsSlider" min="-50" max="50" value="0" step="1"/>
 </div>
 <div class="footer">tuning.methodz.ca</div>
 <script src="flame_flat.js"></script>
@@ -87,145 +132,332 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 <script src="flame_sharp.js"></script>
 <script>
 (function(){
-  var F=window.NEEDLE_FLAMES||{};
-  var map={flat:F.flat,rising:F.rising,tune:F.tune,'tune-loop':F.tune,sharp:F.sharp};
-  document.querySelectorAll('#emblem [data-state]').forEach(function(img){
-    if(map[img.dataset.state])img.src=map[img.dataset.state];
-  });
-})();
-var METHODZ_API={
-  manifest:'https://raw.githubusercontent.com/ziddi3/methodz-brand-assets/main/api/v1/manifest.json',
-  rawBase:'https://raw.githubusercontent.com/ziddi3/methodz-brand-assets/main/'
-};
-async function getBrandAsset(company,key){
-  var res=await fetch(METHODZ_API.manifest);
-  var m=await res.json();
-  var a=m.assets&&m.assets[company]&&m.assets[company][key];
-  if(!a)throw new Error('missing '+company+'.'+key);
-  return Object.assign({},a,{raw_url:METHODZ_API.rawBase+a.path});
-}
-(async function(){
-  try{
-    var logo=await getBrandAsset('methodz','main_logo');
-    var el=document.getElementById('brandMark');
-    el.src=logo.raw_url;el.classList.add('show');
-  }catch(e){console.warn(e)}
-})();
-var STRINGS=[
-  {name:'Low E',note:'E2',freq:82.41,side:'left'},
-  {name:'A',note:'A2',freq:110,side:'left'},
-  {name:'D',note:'D3',freq:146.83,side:'left'},
-  {name:'G',note:'G3',freq:196,side:'right'},
-  {name:'B',note:'B3',freq:246.94,side:'right'},
-  {name:'High E',note:'E4',freq:329.63,side:'right'}
-];
-var activeString=0,listening=false,currentCents=0,smoothedCents=0;
-var pegsLeft=document.getElementById('pegsLeft'),pegsRight=document.getElementById('pegsRight');
-var stringRow=document.getElementById('stringRow');
-var layers=[].slice.call(document.querySelectorAll('#emblem [data-state]'));
-var pegEls=[];
-STRINGS.forEach(function(s,i){
-  var peg=document.createElement('div');
-  peg.className='peg';
-  peg.innerHTML='<div class="wing"></div><div class="label">'+s.note.replace(/\d/,'')+'</div>';
-  peg.onclick=function(){selectString(i)};
-  (s.side==='left'?pegsLeft:pegsRight).appendChild(peg);
-  pegEls.push({el:peg,stringIndex:i});
-  var chip=document.createElement('div');
-  chip.className='string-chip';
-  chip.innerHTML='<span class="n">'+s.note.replace(/\d/,'')+'</span>'+s.name;
-  chip.onclick=function(){selectString(i)};
-  stringRow.appendChild(chip);
-});
-function selectString(i){
-  activeString=i;
-  [].forEach.call(document.querySelectorAll('.string-chip'),function(c,idx){c.classList.toggle('active',idx===i)});
-  pegEls.forEach(function(p){p.el.classList.toggle('active',p.stringIndex===i)});
-  updateUI();
-}
-var noteEl=document.getElementById('note'),centsEl=document.getElementById('cents');
-var hintEl=document.getElementById('hint'),statusPill=document.getElementById('statusPill');
-var btnListen=document.getElementById('btnListen'),btnManual=document.getElementById('btnManual');
-var manualPanel=document.getElementById('manualPanel'),centsSlider=document.getElementById('centsSlider');
-var manualVal=document.getElementById('manualVal');
-selectString(0);
-function flameState(c){if(c<=-40)return'flat';if(c<-5)return'rising';if(Math.abs(c)<=5)return'tune-loop';return'sharp'}
-function statusText(c){if(Math.abs(c)<=5)return'In tune · hold';if(c<0)return'Too low · tighten';return'Too high · loosen'}
-function updateUI(){
-  var s=STRINGS[activeString],c=smoothedCents;
-  noteEl.textContent=s.note.replace(/\d/,'');
-  noteEl.classList.toggle('in-tune',Math.abs(c)<=5);
-  centsEl.textContent=(c>0?'+':'')+c.toFixed(0)+' ¢';
-  hintEl.textContent=statusText(c);
-  statusPill.textContent=Math.abs(c)<=5?'Locked':(listening?'Listening':'Ready');
-  statusPill.classList.toggle('ok',Math.abs(c)<=5);
-  var state=flameState(c);
-  layers.forEach(function(layer){layer.classList.toggle('show',layer.dataset.state===state)});
-  pegEls.forEach(function(p){
-    var active=p.stringIndex===activeString;
-    p.el.classList.toggle('active',active);
-    p.el.querySelector('.wing').style.transform='rotate('+(active?Math.max(-50,Math.min(50,c))*2.4:0)+'deg)';
-  });
-}
-var audioCtx,analyser,mediaStream,buf;
-function freqToCents(freq,target){return 1200*Math.log2(freq/target)}
-function detectPitch(buffer,sampleRate){
-  var SIZE=buffer.length,rms=0,i;
-  for(i=0;i<SIZE;i++)rms+=buffer[i]*buffer[i];
-  rms=Math.sqrt(rms/SIZE);if(rms<0.01)return-1;
-  var r1=0,r2=SIZE-1,thres=0.2;
-  for(i=0;i<SIZE/2;i++)if(Math.abs(buffer[i])<thres){r1=i;break}
-  for(i=1;i<SIZE/2;i++)if(Math.abs(buffer[SIZE-i])<thres){r2=SIZE-i;break}
-  var buf2=buffer.slice(r1,r2),n=buf2.length,c=new Array(n).fill(0),j;
-  for(i=0;i<n;i++)for(j=0;j<n-i;j++)c[i]+=buf2[j]*buf2[j+i];
-  var d=0;while(c[d]>c[d+1])d++;
-  var maxval=-1,maxpos=-1;
-  for(i=d;i<n;i++)if(c[i]>maxval){maxval=c[i];maxpos=i}
-  if(maxpos<=0)return-1;
-  var x1=c[maxpos-1]||0,x2=c[maxpos],x3=c[maxpos+1]||0;
-  var a=(x1+x3-2*x2)/2,b=(x3-x1)/2;
-  var T0=a?maxpos-b/(2*a):maxpos;
-  return sampleRate/T0;
-}
-async function startListen(){
-  try{
-    mediaStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
-    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    var src=audioCtx.createMediaStreamSource(mediaStream);
-    analyser=audioCtx.createAnalyser();analyser.fftSize=4096;src.connect(analyser);
-    buf=new Float32Array(analyser.fftSize);listening=true;
-    btnListen.classList.add('active');btnListen.textContent='Stop';statusPill.textContent='Listening';loop();
-  }catch(e){hintEl.textContent='Mic permission needed — or use Manual';console.warn(e)}
-}
-function stopListen(){
-  listening=false;btnListen.classList.remove('active');btnListen.textContent='Listen';
-  if(mediaStream)mediaStream.getTracks().forEach(function(t){t.stop()});
-  if(audioCtx)audioCtx.close().catch(function(){});statusPill.textContent='Ready';
-}
-function loop(){
-  if(!listening)return;
-  analyser.getFloatTimeDomainData(buf);
-  var freq=detectPitch(buf,audioCtx.sampleRate);
-  if(freq>60&&freq<1200){
-    var best=activeString,bestDiff=Infinity;
-    STRINGS.forEach(function(s,i){var d=Math.abs(freqToCents(freq,s.freq));if(d<bestDiff){bestDiff=d;best=i}});
-    if(bestDiff<100)selectString(best);
-    currentCents=Math.max(-80,Math.min(80,freqToCents(freq,STRINGS[activeString].freq)));
+  var F = window.NEEDLE_FLAMES || {};
+  var M = { cx: 220, cy: 258, rOut: 198, rIn: 154, rNeedle: 192, maxDeg: 48, win: 11 };
+  var svg = document.getElementById('meter');
+  var NS = 'http://www.w3.org/2000/svg';
+  var flameEl, needleEl, needleGlow;
+
+  function polar(deg, r){
+    var rad = deg * Math.PI / 180;
+    return { x: M.cx + r * Math.sin(rad), y: M.cy - r * Math.cos(rad) };
   }
-  smoothedCents+=(currentCents-smoothedCents)*0.22;updateUI();requestAnimationFrame(loop);
-}
-btnListen.addEventListener('click',function(){listening?stopListen():startListen()});
-btnManual.addEventListener('click',function(e){
-  e.preventDefault();
-  var on=manualPanel.classList.toggle('show');
-  btnManual.classList.toggle('active',on);
-  if(on&&listening)stopListen();
-});
-centsSlider.oninput=function(){
-  currentCents=Number(centsSlider.value);smoothedCents=currentCents;
-  manualVal.textContent=(currentCents>0?'+':'')+currentCents+' ¢';updateUI();
-};
-updateUI();
+  function band(r0, r1, a0, a1){
+    var p0o = polar(a0, r1), p1o = polar(a1, r1);
+    var p1i = polar(a1, r0), p0i = polar(a0, r0);
+    var sweep = a1 > a0 ? 1 : 0;
+    return 'M'+p0o.x+','+p0o.y+' A'+r1+','+r1+' 0 0 '+sweep+' '+p1o.x+','+p1o.y+' L'+p1i.x+','+p1i.y+' A'+r0+','+r0+' 0 0 '+(sweep?0:1)+' '+p0i.x+','+p0i.y+' Z';
+  }
+  function el(name, attrs){
+    var n = document.createElementNS(NS, name);
+    Object.keys(attrs).forEach(function(k){ n.setAttribute(k, attrs[k]); });
+    return n;
+  }
+
+  function buildMeter(){
+    var defs = el('defs', {});
+    var clip = el('clipPath', { id: 'flameClip' });
+    clip.appendChild(el('path', { d: band(42, 248, -M.win, M.win) }));
+    defs.appendChild(clip);
+
+    var glow = el('filter', { id: 'softGlow', x: '-40%', y: '-40%', width: '180%', height: '180%' });
+    glow.appendChild(el('feGaussianBlur', { stdDeviation: '3.2', result: 'b' }));
+    var merge = el('feMerge', {});
+    merge.appendChild(el('feMergeNode', { in: 'b' }));
+    merge.appendChild(el('feMergeNode', { in: 'SourceGraphic' }));
+    glow.appendChild(merge);
+    defs.appendChild(glow);
+    svg.appendChild(defs);
+
+    /* housing */
+    svg.appendChild(el('path', {
+      d: band(138, 214, -M.maxDeg - 4, M.maxDeg + 4),
+      fill: '#12161d', stroke: '#2a3342', 'stroke-width': '1.2'
+    }));
+
+    /* flame — clipped to the center window, hidden until in-tune */
+    flameEl = el('image', {
+      href: F.tune || '',
+      x: String(M.cx - 70), y: '18', width: '140', height: '140',
+      preserveAspectRatio: 'xMidYMid slice',
+      'clip-path': 'url(#flameClip)',
+      opacity: '0',
+      id: 'flameImg'
+    });
+    svg.appendChild(flameEl);
+
+    /* white outer bands */
+    svg.appendChild(el('path', { d: band(M.rIn, M.rOut, -M.maxDeg, -M.win), fill: '#e8e6df' }));
+    svg.appendChild(el('path', { d: band(M.rIn, M.rOut, M.win, M.maxDeg), fill: '#e8e6df' }));
+
+    /* center window rim */
+    svg.appendChild(el('path', {
+      d: band(M.rIn, M.rOut, -M.win, M.win),
+      fill: 'rgba(18,22,29,.35)', stroke: '#3a4658', 'stroke-width': '1'
+    }));
+
+    /* ticks */
+    var ticks = document.createElementNS(NS, 'g');
+    for (var c = -50; c <= 50; c += 5){
+      var deg = (c / 50) * M.maxDeg;
+      var major = c % 25 === 0;
+      var inWhite = Math.abs(c) >= 12;
+      var rA = major ? M.rOut - 2 : M.rOut - 6;
+      var rB = inWhite ? (major ? M.rIn + 4 : M.rOut - 16) : (major ? M.rIn + 6 : M.rOut - 14);
+      var a = polar(deg, rA), b = polar(deg, rB);
+      ticks.appendChild(el('line', {
+        x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+        stroke: inWhite ? '#1a1e24' : '#8a93a0',
+        'stroke-width': major ? '2' : '1',
+        'stroke-linecap': 'round'
+      }));
+      if (c === -50 || c === 50 || c === 0 || c === -25 || c === 25){
+        var lab = polar(deg, M.rIn - 16);
+        var text = (c === -50) ? '♭' : (c === 50) ? '♯' : String(c);
+        var t = el('text', {
+          x: lab.x, y: lab.y, fill: c === 0 ? '#3dce7a' : '#8a93a0',
+          'font-size': c === 0 ? '13' : '10',
+          'font-family': 'Segoe UI, system-ui, sans-serif',
+          'text-anchor': 'middle', 'dominant-baseline': 'middle'
+        });
+        t.textContent = text;
+        ticks.appendChild(t);
+      }
+    }
+    svg.appendChild(ticks);
+
+    /* zero hairline */
+    var z0 = polar(0, M.rOut + 6), z1 = polar(0, M.rIn - 4);
+    svg.appendChild(el('line', { x1: z0.x, y1: z0.y, x2: z1.x, y2: z1.y, stroke: '#3dce7a', 'stroke-width': '1.4', opacity: '.55' }));
+
+    /* needle */
+    var ng = el('g', { id: 'needleGroup' });
+    needleGlow = el('polygon', {
+      class: 'needle-glow',
+      points: (M.cx)+','+(M.cy - M.rNeedle)+' '+(M.cx+5)+','+(M.cy-8)+' '+(M.cx-5)+','+(M.cy-8),
+      fill: '#c5cdd6', opacity: '0', filter: 'url(#softGlow)'
+    });
+    needleEl = el('polygon', {
+      id: 'needle',
+      points: (M.cx)+','+(M.cy - M.rNeedle)+' '+(M.cx+3.4)+','+(M.cy-6)+' '+(M.cx-3.4)+','+(M.cy-6),
+      fill: '#c5cdd6'
+    });
+    ng.appendChild(needleGlow);
+    ng.appendChild(needleEl);
+    svg.appendChild(ng);
+
+    /* hub */
+    svg.appendChild(el('circle', { cx: M.cx, cy: M.cy, r: '13', fill: '#2a3140', stroke: '#c5cdd6', 'stroke-width': '1.6' }));
+    svg.appendChild(el('circle', { cx: M.cx, cy: M.cy, r: '6', fill: '#0a0c10', stroke: '#8a93a0', 'stroke-width': '1' }));
+    svg.appendChild(el('circle', { cx: M.cx, cy: M.cy, r: '2.2', fill: '#e8e6df' }));
+  }
+
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  function hexToRgb(h){
+    h = h.replace('#','');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
+  function rgbToHex(r,g,b){
+    return '#'+[r,g,b].map(function(v){ return ('0'+Math.round(v).toString(16)).slice(-2); }).join('');
+  }
+  function mix(a, b, t){
+    var A = hexToRgb(a), B = hexToRgb(b);
+    return rgbToHex(lerp(A[0],B[0],t), lerp(A[1],B[1],t), lerp(A[2],B[2],t));
+  }
+  function needleColor(cents, live){
+    if (!live) return '#7a828c';
+    var a = Math.abs(cents);
+    if (a <= 5) return '#3dce7a';
+    if (cents < 0){
+      var t = Math.min(1, (a - 5) / 35);
+      return mix('#3dce7a', '#e8903a', t);
+    }
+    var t = Math.min(1, (a - 5) / 35);
+    return mix('#3dce7a', '#4eb8ff', t);
+  }
+  function setNeedle(cents, live){
+    var clamped = Math.max(-50, Math.min(50, cents));
+    var deg = (clamped / 50) * M.maxDeg;
+    var ng = document.getElementById('needleGroup');
+    ng.setAttribute('transform', 'rotate('+deg+' '+M.cx+' '+M.cy+')');
+    var col = needleColor(cents, live);
+    needleEl.setAttribute('fill', col);
+    needleGlow.setAttribute('fill', col);
+    var inTune = live && Math.abs(cents) <= 5;
+    needleGlow.setAttribute('opacity', inTune ? '0.9' : '0');
+    var flameT = live ? Math.max(0, 1 - Math.abs(cents) / 10) : 0;
+    if (Math.abs(cents) > 10) flameT = 0;
+    flameEl.setAttribute('opacity', String(flameT));
+  }
+
+  buildMeter();
+  setNeedle(0, false);
+
+  var STRINGS = [
+    { name:'Low E', note:'E2', freq:82.41, side:'left' },
+    { name:'A', note:'A2', freq:110, side:'left' },
+    { name:'D', note:'D3', freq:146.83, side:'left' },
+    { name:'G', note:'G3', freq:196, side:'right' },
+    { name:'B', note:'B3', freq:246.94, side:'right' },
+    { name:'High E', note:'E4', freq:329.63, side:'right' }
+  ];
+  var activeString = 0, listening = false, currentCents = 0, smoothedCents = 0, live = false, manualOn = false;
+  var pegsLeft = document.getElementById('pegsLeft');
+  var pegsRight = document.getElementById('pegsRight');
+  var stringRow = document.getElementById('stringRow');
+  var pegEls = [];
+
+  STRINGS.forEach(function(s, i){
+    var peg = document.createElement('div');
+    peg.className = 'peg';
+    peg.innerHTML = '<div class="wing"></div><div class="label">'+s.note.replace(/\d/,'')+'</div>';
+    peg.onclick = function(){ selectString(i); };
+    (s.side === 'left' ? pegsLeft : pegsRight).appendChild(peg);
+    pegEls.push({ el: peg, stringIndex: i });
+    var chip = document.createElement('div');
+    chip.className = 'string-chip';
+    chip.innerHTML = '<span class="n">'+s.note.replace(/\d/,'')+'</span>'+s.name;
+    chip.onclick = function(){ selectString(i); };
+    stringRow.appendChild(chip);
+  });
+
+  function selectString(i){
+    activeString = i;
+    [].forEach.call(document.querySelectorAll('.string-chip'), function(c, idx){ c.classList.toggle('active', idx === i); });
+    pegEls.forEach(function(p){ p.el.classList.toggle('active', p.stringIndex === i); });
+    updateUI();
+  }
+
+  var noteEl = document.getElementById('note');
+  var centsEl = document.getElementById('cents');
+  var hintEl = document.getElementById('hint');
+  var statusPill = document.getElementById('statusPill');
+  var btnListen = document.getElementById('btnListen');
+  var btnManual = document.getElementById('btnManual');
+  var manualPanel = document.getElementById('manualPanel');
+  var centsSlider = document.getElementById('centsSlider');
+  var manualVal = document.getElementById('manualVal');
+
+  function statusText(c){
+    if (!live) return 'Tap Listen, then pluck a string';
+    if (Math.abs(c) <= 5) return 'In tune · hold';
+    if (c < 0) return 'Too low · tighten';
+    return 'Too high · loosen';
+  }
+
+  function updateUI(){
+    var s = STRINGS[activeString];
+    var c = smoothedCents;
+    var show = live || manualOn;
+    noteEl.textContent = show ? s.note.replace(/\d/,'') : '—';
+    noteEl.classList.toggle('in-tune', show && Math.abs(c) <= 5);
+    centsEl.textContent = show ? ((c > 0 ? '+' : '') + c.toFixed(0) + ' ¢') : '— ¢';
+    hintEl.textContent = statusText(c);
+    var locked = show && Math.abs(c) <= 5;
+    statusPill.textContent = locked ? 'Locked' : (listening ? 'Listening' : (manualOn ? 'Manual' : 'Ready'));
+    statusPill.classList.toggle('ok', locked);
+    setNeedle(show ? c : 0, show);
+    pegEls.forEach(function(p){
+      var active = p.stringIndex === activeString;
+      p.el.classList.toggle('active', active);
+      p.el.querySelector('.wing').style.transform = 'rotate('+(active && show ? Math.max(-50, Math.min(50, c)) * 2.4 : 0)+'deg)';
+    });
+  }
+
+  selectString(0);
+
+  function freqToCents(freq, target){ return 1200 * Math.log2(freq / target); }
+  function detectPitch(buffer, sampleRate){
+    var SIZE = buffer.length, rms = 0, i;
+    for (i = 0; i < SIZE; i++) rms += buffer[i] * buffer[i];
+    rms = Math.sqrt(rms / SIZE);
+    if (rms < 0.01) return -1;
+    var r1 = 0, r2 = SIZE - 1, thres = 0.2;
+    for (i = 0; i < SIZE / 2; i++) if (Math.abs(buffer[i]) < thres){ r1 = i; break; }
+    for (i = 1; i < SIZE / 2; i++) if (Math.abs(buffer[SIZE - i]) < thres){ r2 = SIZE - i; break; }
+    var buf2 = buffer.slice(r1, r2), n = buf2.length, c = new Array(n).fill(0), j;
+    for (i = 0; i < n; i++) for (j = 0; j < n - i; j++) c[i] += buf2[j] * buf2[j + i];
+    var d = 0; while (c[d] > c[d + 1]) d++;
+    var maxval = -1, maxpos = -1;
+    for (i = d; i < n; i++) if (c[i] > maxval){ maxval = c[i]; maxpos = i; }
+    if (maxpos <= 0) return -1;
+    var x1 = c[maxpos - 1] || 0, x2 = c[maxpos], x3 = c[maxpos + 1] || 0;
+    var a = (x1 + x3 - 2 * x2) / 2, b = (x3 - x1) / 2;
+    var T0 = a ? maxpos - b / (2 * a) : maxpos;
+    return sampleRate / T0;
+  }
+
+  var audioCtx, analyser, mediaStream, buf;
+  async function startListen(){
+    try{
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var src = audioCtx.createMediaStreamSource(mediaStream);
+      analyser = audioCtx.createAnalyser(); analyser.fftSize = 4096; src.connect(analyser);
+      buf = new Float32Array(analyser.fftSize);
+      listening = true; live = true; manualOn = false;
+      manualPanel.classList.remove('show'); btnManual.classList.remove('active');
+      btnListen.classList.add('active'); btnListen.textContent = 'Stop';
+      statusPill.textContent = 'Listening';
+      loop();
+    }catch(e){
+      hintEl.textContent = 'Mic permission needed — or use Manual';
+      console.warn(e);
+    }
+  }
+  function stopListen(){
+    listening = false;
+    btnListen.classList.remove('active'); btnListen.textContent = 'Listen';
+    if (mediaStream) mediaStream.getTracks().forEach(function(t){ t.stop(); });
+    if (audioCtx) audioCtx.close().catch(function(){});
+    if (!manualOn){ live = false; currentCents = 0; smoothedCents = 0; }
+    updateUI();
+  }
+  function loop(){
+    if (!listening) return;
+    analyser.getFloatTimeDomainData(buf);
+    var freq = detectPitch(buf, audioCtx.sampleRate);
+    if (freq > 60 && freq < 1200){
+      var best = activeString, bestDiff = Infinity;
+      STRINGS.forEach(function(s, i){
+        var d = Math.abs(freqToCents(freq, s.freq));
+        if (d < bestDiff){ bestDiff = d; best = i; }
+      });
+      if (bestDiff < 100) selectString(best);
+      currentCents = Math.max(-50, Math.min(50, freqToCents(freq, STRINGS[activeString].freq)));
+      live = true;
+    }
+    smoothedCents += (currentCents - smoothedCents) * 0.22;
+    updateUI();
+    requestAnimationFrame(loop);
+  }
+
+  btnListen.addEventListener('click', function(){ listening ? stopListen() : startListen(); });
+  btnManual.addEventListener('click', function(e){
+    e.preventDefault();
+    var on = manualPanel.classList.toggle('show');
+    btnManual.classList.toggle('active', on);
+    manualOn = on;
+    if (on && listening) stopListen();
+    if (on){
+      live = true;
+      currentCents = Number(centsSlider.value);
+      smoothedCents = currentCents;
+    } else {
+      live = false;
+      currentCents = 0; smoothedCents = 0;
+    }
+    updateUI();
+  });
+  centsSlider.oninput = function(){
+    currentCents = Number(centsSlider.value);
+    smoothedCents = currentCents;
+    live = true; manualOn = true;
+    manualVal.textContent = (currentCents > 0 ? '+' : '') + currentCents + ' ¢';
+    updateUI();
+  };
+  updateUI();
+})();
 </script>
 </body>
 </html>

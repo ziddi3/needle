@@ -1,14 +1,16 @@
 # Needle
 
-**Methodz flame guitar tuner** — real-time pitch detection with the Methodz M-shield flame feedback and spinning headstock pegs.
+**Methodz analog guitar tuner** — real-time pitch detection with a cream-white VU scale, a color-changing needle, and the Methodz flame only when you lock in.
 
-Live target: **[tuning.methodz.ca](https://tuning.methodz.ca)**
+Live: **[tuning.methodz.ca](https://tuning.methodz.ca)**
 
 ## How it works
 
 - Microphone → lightweight autocorrelation pitch detection
-- Cents offset drives the **flame state machine** (sparks → rising → locked red core → raging blue)
-- 3+3 tuning pegs rotate with pitch error so you can see which way / how far to turn the real machine heads
+- Analog needle swings across a white left/right scale
+- Needle color: **amber (flat) → green (in tune) → ice blue (sharp)**
+- Methodz flame appears **only** in the center window when you are in tune
+- 3+3 headstock pegs rotate with pitch error so you can see which way to turn the real machine heads
 - Manual cents slider for testing without a guitar
 
 See `SPEC.md` for the full interaction map.
@@ -31,13 +33,12 @@ Static site. Point any host (Vercel, Cloudflare Pages, etc.) at this repo.
 
 ## Stack
 
-- Pure HTML / CSS / Canvas / Web Audio API
+- Pure HTML / CSS / SVG / Web Audio API
 - No build step required
 - Mobile-first, dark workshop aesthetic
 
 ## Roadmap
 
-- [ ] Swap canvas flame for the real Methodz loop assets + state images
 - [ ] YIN pitch detector (higher accuracy on low strings)
 - [ ] Alternate tunings (Drop D, Open G, etc.)
 - [ ] Reference tone + haptics
