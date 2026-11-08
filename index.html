@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="theme-color" content="#0a0c10"/>
-<meta name="description" content="Needle — analog guitar tuner by Methodz. White-scale VU meter, color needle, Methodz flame when you lock in."/>
+<meta name="description" content="Needle — 14-string harp and guitar tuner by Methodz. White-scale VU meter, color needle, Methodz flame when you lock in."/>
 <title>Needle · Methodz</title>
 <style>
 :root{
@@ -96,6 +96,31 @@ input[type=range]{width:100%;accent-color:var(--green)}
   .peg{width:34px;height:34px}
   .peg::after{inset:7px}
 }
+[hidden]{display:none!important}
+.preset-controls{width:min(100%,440px);margin:.7rem 0 .5rem}
+.preset-controls label{display:block;font-size:.72rem;color:var(--muted)}
+.preset-controls select{
+  display:block;width:100%;min-height:44px;margin:.3rem 0 .5rem;padding:.5rem;
+  font:inherit;font-size:.9rem;color:var(--fg);background:#12161d;border:1px solid #2a3342;border-radius:8px
+}
+.harp-options{display:grid;grid-template-columns:1fr 1fr;gap:0 .6rem}
+.harp-options .key-control{grid-column:1/-1}
+.range-summary,.safety-note,.target{font-size:.72rem;line-height:1.5;color:var(--muted)}
+.range-summary{margin:.2rem 0}
+.safety-note{margin:.35rem 0;color:var(--amber)}
+.target{margin-top:.3rem;font-variant-numeric:tabular-nums}
+.harp-mode .pegs{gap:1rem}
+.peg{padding:0;min-height:0;flex-shrink:0}
+.harp-mode .peg{width:28px;height:28px}
+.harp-mode .peg::after{inset:5px}
+.harp-mode .peg .label{font-size:.52rem;bottom:-.9rem;white-space:nowrap;letter-spacing:0}
+.string-row.harp-strings{grid-template-columns:repeat(7,minmax(0,1fr))}
+button.string-chip{padding:.55rem .1rem;border-radius:10px;font-size:.6rem;letter-spacing:0;text-transform:none;min-width:0}
+.string-chip .hz{display:block;font-size:.55rem;margin-top:.2rem;font-variant-numeric:tabular-nums}
+button:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+@media (max-width:400px){
+  .string-row.harp-strings{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
@@ -103,6 +128,28 @@ input[type=range]{width:100%;accent-color:var(--green)}
   <div class="brand">Needle<span>Methodz</span></div>
   <div class="status-pill" id="statusPill">Ready</div>
 </header>
+<section class="preset-controls" aria-label="Tuning setup">
+  <label for="instrument">Instrument</label>
+  <select id="instrument">
+    <option value="harp" selected>14-string harp</option>
+    <option value="guitar">6-string guitar · standard</option>
+  </select>
+  <div class="harp-options" id="harpOptions">
+    <label class="key-control" for="harpKey">Major key / key signature
+      <select id="harpKey"></select>
+    </label>
+    <label for="harpStart">Lowest string letter
+      <select id="harpStart">
+        <option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option>B</option>
+      </select>
+    </label>
+    <label for="harpOctave">Starting octave
+      <select id="harpOctave"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select>
+    </label>
+  </div>
+  <p class="range-summary" id="rangeSummary" aria-live="polite"></p>
+  <p class="safety-note" id="harpSafety">C4–B5 is an example range, not a universal harp standard. Match your manufacturer's specified string range and tuning. Do not exceed a string's rated pitch. Key changes may require different string tension or lever settings; check your harp's instructions first.</p>
+</section>
 <div class="stage">
   <div class="pegs left" id="pegsLeft"></div>
   <div class="meter-wrap">
@@ -114,6 +161,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
 <div class="readout">
   <div class="note" id="note">—</div>
   <div class="cents" id="cents">— ¢</div>
+  <div class="target" id="target"></div>
   <div class="hint" id="hint">Tap Listen, then pluck a string</div>
 </div>
 <div class="string-row" id="stringRow"></div>
@@ -126,6 +174,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
   <input type="range" id="centsSlider" min="-50" max="50" value="0" step="1"/>
 </div>
 <div class="footer">tuning.methodz.ca</div>
+<script src="tuning-presets.js"></script>
 <script src="flame_flat.js"></script>
 <script src="flame_rising.js"></script>
 <script src="flame_tune.js"></script>
@@ -293,38 +342,83 @@ input[type=range]{width:100%;accent-color:var(--green)}
   buildMeter();
   setNeedle(0, false);
 
-  var STRINGS = [
-    { name:'Low E', note:'E2', freq:82.41, side:'left' },
-    { name:'A', note:'A2', freq:110, side:'left' },
-    { name:'D', note:'D3', freq:146.83, side:'left' },
-    { name:'G', note:'G3', freq:196, side:'right' },
-    { name:'B', note:'B3', freq:246.94, side:'right' },
-    { name:'High E', note:'E4', freq:329.63, side:'right' }
-  ];
+  var presets = window.NEEDLE_PRESETS;
+  var instrument = document.getElementById('instrument');
+  var harpKey = document.getElementById('harpKey');
+  var harpStart = document.getElementById('harpStart');
+  var harpOctave = document.getElementById('harpOctave');
+  var targetEl = document.getElementById('target');
+  var rangeSummary = document.getElementById('rangeSummary');
+  var harpMode = true;
+  var STRINGS = presets.harp();
+  var pitchBounds = presets.detectionBounds(STRINGS);
+  var acceptPitchAfter = 0;
+  presets.keys.forEach(function(key){
+    var option = document.createElement('option');
+    option.value = key;
+    option.textContent = key === 'C' ? 'C major · standard default (no sharps/flats)' : key + ' major';
+    harpKey.appendChild(option);
+  });
+  // Always start with the standard example, even after browser form restoration.
+  instrument.value = 'harp'; harpKey.value = 'C'; harpStart.value = 'C'; harpOctave.value = '4';
   var activeString = 0, listening = false, currentCents = 0, smoothedCents = 0, live = false, manualOn = false;
   var pegsLeft = document.getElementById('pegsLeft');
   var pegsRight = document.getElementById('pegsRight');
   var stringRow = document.getElementById('stringRow');
   var pegEls = [];
 
-  STRINGS.forEach(function(s, i){
-    var peg = document.createElement('div');
-    peg.className = 'peg';
-    peg.innerHTML = '<div class="wing"></div><div class="label">'+s.note.replace(/\d/,'')+'</div>';
-    peg.onclick = function(){ selectString(i); };
-    (s.side === 'left' ? pegsLeft : pegsRight).appendChild(peg);
-    pegEls.push({ el: peg, stringIndex: i });
-    var chip = document.createElement('div');
-    chip.className = 'string-chip';
-    chip.innerHTML = '<span class="n">'+s.note.replace(/\d/,'')+'</span>'+s.name;
-    chip.onclick = function(){ selectString(i); };
-    stringRow.appendChild(chip);
-  });
+  function resetReading(){
+    live = false; manualOn = false; currentCents = 0; smoothedCents = 0;
+    centsSlider.value = '0'; manualVal.textContent = '0 ¢';
+    manualPanel.classList.remove('show'); btnManual.classList.remove('active');
+    // Wait for the analyser's old samples to flush after a configuration change.
+    acceptPitchAfter = performance.now() + 200;
+  }
+  function renderTargets(){
+    pegsLeft.textContent = ''; pegsRight.textContent = ''; stringRow.textContent = '';
+    pegEls = [];
+    STRINGS.forEach(function(s, i){
+      var peg = document.createElement('button');
+      peg.type = 'button'; peg.className = 'peg';
+      peg.setAttribute('aria-label', s.name + ': ' + s.note + ', ' + s.freq.toFixed(2) + ' Hz');
+      peg.innerHTML = '<span class="wing"></span><span class="label">'+(harpMode ? s.note : s.note.replace(/\d/,''))+'</span>';
+      peg.onclick = function(){ selectString(i); };
+      (s.side === 'left' ? pegsLeft : pegsRight).appendChild(peg);
+      pegEls.push({ el:peg, stringIndex:i });
+      var chip = document.createElement('button');
+      chip.type = 'button'; chip.className = 'string-chip';
+      chip.innerHTML = '<span class="n">'+(harpMode ? s.note : s.note.replace(/\d/,''))+'</span>'+s.name+
+        (harpMode ? '<span class="hz">'+s.freq.toFixed(1)+' Hz</span>' : '');
+      chip.setAttribute('aria-label', s.name + ': ' + s.note + ', ' + s.freq.toFixed(2) + ' Hz');
+      chip.onclick = function(){ selectString(i); };
+      stringRow.appendChild(chip);
+    });
+  }
+  function configure(){
+    harpMode = instrument.value === 'harp';
+    STRINGS = harpMode ? presets.harp({key:harpKey.value, start:harpStart.value, octave:Number(harpOctave.value)}) : presets.guitar();
+    pitchBounds = harpMode ? presets.detectionBounds(STRINGS) : {min:60, max:1200};
+    document.body.classList.toggle('harp-mode', harpMode);
+    document.getElementById('harpOptions').hidden = !harpMode;
+    document.getElementById('harpSafety').hidden = !harpMode;
+    stringRow.classList.toggle('harp-strings', harpMode);
+    rangeSummary.textContent = harpMode ? '14 strings · ' + harpKey.value + ' major · ' + STRINGS[0].note + '–' + STRINGS[13].note +
+      ' · key signature applied to the selected string letters; A4 = 440 Hz.' : 'Standard guitar · E2 A2 D3 G3 B3 E4';
+    resetReading();
+    renderTargets();
+    selectString(0, true);
+  }
+  [instrument, harpKey, harpStart, harpOctave].forEach(function(control){ control.addEventListener('change', configure); });
 
-  function selectString(i){
+  function selectString(i, fromAudio){
+    if (!fromAudio) resetReading();
     activeString = i;
-    [].forEach.call(document.querySelectorAll('.string-chip'), function(c, idx){ c.classList.toggle('active', idx === i); });
-    pegEls.forEach(function(p){ p.el.classList.toggle('active', p.stringIndex === i); });
+    [].forEach.call(stringRow.children, function(c, idx){
+      c.classList.toggle('active', idx === i); c.setAttribute('aria-pressed', String(idx === i));
+    });
+    pegEls.forEach(function(p){
+      p.el.classList.toggle('active', p.stringIndex === i); p.el.setAttribute('aria-pressed', String(p.stringIndex === i));
+    });
     updateUI();
   }
 
@@ -339,8 +433,9 @@ input[type=range]{width:100%;accent-color:var(--green)}
   var manualVal = document.getElementById('manualVal');
 
   function statusText(c){
-    if (!live) return 'Tap Listen, then pluck a string';
+    if (!live) return listening ? 'Pluck one string; let other strings settle' : 'Tap Listen, then pluck a string';
     if (Math.abs(c) <= 5) return 'In tune · hold';
+    if (harpMode) return c < 0 ? 'Below target · check approved string tuning' : 'Above target · check approved string tuning';
     if (c < 0) return 'Too low · tighten';
     return 'Too high · loosen';
   }
@@ -349,7 +444,8 @@ input[type=range]{width:100%;accent-color:var(--green)}
     var s = STRINGS[activeString];
     var c = smoothedCents;
     var show = live || manualOn;
-    noteEl.textContent = show ? s.note.replace(/\d/,'') : '—';
+    noteEl.textContent = harpMode ? s.note : (show ? s.note.replace(/\d/,'') : '—');
+    targetEl.textContent = 'Target: ' + s.note + ' · ' + s.freq.toFixed(2) + ' Hz';
     noteEl.classList.toggle('in-tune', show && Math.abs(c) <= 5);
     centsEl.textContent = show ? ((c > 0 ? '+' : '') + c.toFixed(0) + ' ¢') : '— ¢';
     hintEl.textContent = statusText(c);
@@ -364,7 +460,7 @@ input[type=range]{width:100%;accent-color:var(--green)}
     });
   }
 
-  selectString(0);
+  configure();
 
   function freqToCents(freq, target){ return 1200 * Math.log2(freq / target); }
   function detectPitch(buffer, sampleRate){
@@ -395,7 +491,8 @@ input[type=range]{width:100%;accent-color:var(--green)}
       var src = audioCtx.createMediaStreamSource(mediaStream);
       analyser = audioCtx.createAnalyser(); analyser.fftSize = 4096; src.connect(analyser);
       buf = new Float32Array(analyser.fftSize);
-      listening = true; live = true; manualOn = false;
+      listening = true; live = false; manualOn = false;
+      currentCents = 0; smoothedCents = 0;
       manualPanel.classList.remove('show'); btnManual.classList.remove('active');
       btnListen.classList.add('active'); btnListen.textContent = 'Stop';
       statusPill.textContent = 'Listening';
@@ -417,15 +514,22 @@ input[type=range]{width:100%;accent-color:var(--green)}
     if (!listening) return;
     analyser.getFloatTimeDomainData(buf);
     var freq = detectPitch(buf, audioCtx.sampleRate);
-    if (freq > 60 && freq < 1200){
+    var wasLive = live;
+    live = false;
+    if (performance.now() >= acceptPitchAfter && freq > pitchBounds.min && freq < pitchBounds.max){
       var best = activeString, bestDiff = Infinity;
       STRINGS.forEach(function(s, i){
         var d = Math.abs(freqToCents(freq, s.freq));
         if (d < bestDiff){ bestDiff = d; best = i; }
       });
-      if (bestDiff < 100) selectString(best);
-      currentCents = Math.max(-50, Math.min(50, freqToCents(freq, STRINGS[activeString].freq)));
-      live = true;
+      // Harp ignores pitches more than a semitone from any configured string.
+      if (!harpMode || bestDiff < 100){
+        var changed = bestDiff < 100 && best !== activeString;
+        if (bestDiff < 100) selectString(best, true);
+        currentCents = Math.max(-50, Math.min(50, freqToCents(freq, STRINGS[activeString].freq)));
+        if (!wasLive || changed) smoothedCents = currentCents;
+        live = true;
+      }
     }
     smoothedCents += (currentCents - smoothedCents) * 0.22;
     updateUI();
